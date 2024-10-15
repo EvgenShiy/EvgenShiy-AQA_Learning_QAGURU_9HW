@@ -19,7 +19,11 @@ dependencies {
             'org.apache.pdfbox:pdfbox:2.0.29', // Apache PDFBox для работы с PDF файлами
             'org.apache.poi:poi-ooxml:5.2.3',  // Apache POI для работы с XLSX файлами
             'org.apache.poi:poi:5.2.3',         // Apache POI для работы с XLS файлами
-            'com.opencsv:opencsv:5.7.1' // OpenCSV для обработки CSV фалов
+            'com.opencsv:opencsv:5.7.1', // OpenCSV для обработки CSV фалов
+            'com.fasterxml.jackson.core:jackson-databind:2.15.0',
+            'com.fasterxml.jackson.core:jackson-core:2.15.0',
+            'com.fasterxml.jackson.core:jackson-annotations:2.15.0'
+            // для работы с json
     )
 }
 

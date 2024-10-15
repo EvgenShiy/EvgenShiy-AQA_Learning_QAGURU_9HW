@@ -1,6 +1,9 @@
 package evgen.sh;
-
+import evgen.sh.model.LibraryBook;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
+
+import evgen.sh.model.Library;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
@@ -10,13 +13,17 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class FilesTests {
 
     private final ClassLoader cl = FilesTests.class.getClassLoader();
+
 
     @Test
     void zipTest() throws Exception {
@@ -64,5 +71,39 @@ public class FilesTests {
                 }
             }
         }
+    }
+
+    @Test
+    void jsonFileParsingImprovedTest() throws Exception {
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Library library = objectMapper.readValue(new File("src/test/resources/books.json"), Library.class);
+
+            Assertions.assertThat(library.getLibraryName()).isEqualTo("City Central Library");
+            Assertions.assertThat(library.getAddress()).isEqualTo("123 Main St, Anytown, USA");
+
+            List<LibraryBook> books = library.getBooks();
+
+            LibraryBook firstBook = books.get(0);
+            assertThat(firstBook.getTitle()).isEqualTo("To Kill a Mockingbird");
+            assertThat(firstBook.getAuthor()).isEqualTo("Harper Lee");
+            assertThat(firstBook.getPublishedYear()).isEqualTo(1960);
+            assertThat(firstBook.isAvailable()).isTrue();
+            assertThat(firstBook.getGenres()).containsExactly("Fiction", "Classic", "Drama");
+
+            LibraryBook secondBook = books.get(1);
+            assertThat(secondBook.getTitle()).isEqualTo("1984");
+            assertThat(secondBook.getAuthor()).isEqualTo("George Orwell");
+            assertThat(secondBook.getPublishedYear()).isEqualTo(1949);
+            assertThat(secondBook.isAvailable()).isFalse();
+            assertThat(secondBook.getGenres()).containsExactly("Dystopian", "Science Fiction", "Political Fiction");
+
+            LibraryBook thirdBook = books.get(2);
+            assertThat(thirdBook.getTitle()).isEqualTo("The Great Gatsby");
+            assertThat(thirdBook.getAuthor()).isEqualTo("F. Scott Fitzgerald");
+            assertThat(thirdBook.getPublishedYear()).isEqualTo(1925);
+            assertThat(thirdBook.isAvailable()).isTrue();
+            assertThat(thirdBook.getGenres()).containsExactly("Fiction", "Classic", "Tragedy");
+
     }
 }

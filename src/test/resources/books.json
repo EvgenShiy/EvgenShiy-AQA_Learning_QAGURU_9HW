@@ -1,0 +1,27 @@
+{
+  "libraryName": "City Central Library",
+  "address": "123 Main St, Anytown, USA",
+  "books": [
+    {
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "publishedYear": 1960,
+      "available": true,
+      "genres": ["Fiction", "Classic", "Drama"]
+    },
+    {
+      "title": "1984",
+      "author": "George Orwell",
+      "publishedYear": 1949,
+      "available": false,
+      "genres": ["Dystopian", "Science Fiction", "Political Fiction"]
+    },
+    {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "publishedYear": 1925,
+      "available": true,
+      "genres": ["Fiction", "Classic", "Tragedy"]
+    }
+  ]
+}
