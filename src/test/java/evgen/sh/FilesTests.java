@@ -10,12 +10,10 @@ import org.apache.poi.ss.usermodel.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,46 +22,57 @@ public class FilesTests {
 
     private final ClassLoader cl = FilesTests.class.getClassLoader();
 
+    @Test
+    void csvFileTest() throws Exception {
+        try (ZipInputStream zipInputStream = new ZipInputStream(cl.getResourceAsStream("somefiles.zip"))) {
+            ZipEntry entry;
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (entry.getName().equals("username.csv")) {
+                    CSVReader csvReader = new CSVReader(new InputStreamReader(zipInputStream));
+
+                    String[] firstLine = csvReader.readNext();
+                    Assertions.assertThat(firstLine).containsExactly("Username; Identifier;First name;Last name");
+                    Assertions.assertThat(csvReader.readNext()).containsExactly("booker12;9012;Rachel;Booker");
+                    Assertions.assertThat(csvReader.readNext()).containsExactly("grey07;2070;Laura;Grey");
+
+                    break;
+                }
+            }
+        }
+    }
 
     @Test
-    void zipTest() throws Exception {
-        ZipFile zf = new ZipFile(new File("src/test/resources/somefiles.zip"));
-        try (ZipInputStream is = new ZipInputStream(cl.getResourceAsStream("somefiles.zip"))) {
+    void xlsxFileTest() throws Exception {
+        try (InputStream zipStream = cl.getResourceAsStream("somefiles.zip");
+             ZipInputStream zis = new ZipInputStream(zipStream)) {
 
             ZipEntry entry;
-
-            while ((entry = is.getNextEntry()) != null) {
-                System.out.println("Found file: " + entry.getName());
-
-                if (entry.getName().equals("username.csv")) {
-
-                    try (InputStream inputStreamCsv = zf.getInputStream(entry);
-                         CSVReader csvReader = new CSVReader(new InputStreamReader(inputStreamCsv))) {
-
-                        String[] firstLine = csvReader.readNext();
-                        Assertions.assertThat(firstLine).containsExactly("Username; Identifier;First name;Last name");
-                        Assertions.assertThat(csvReader.readNext()).containsExactly("booker12;9012;Rachel;Booker");
-                        Assertions.assertThat(csvReader.readNext()).containsExactly("grey07;2070;Laura;Grey");
-                    }
-                } else if (entry.getName().equals("example.xlsx")) {
-
-                    try (InputStream inputStreamXlsx = zf.getInputStream(entry);
-                         Workbook workbook = WorkbookFactory.create(inputStreamXlsx)) {
-
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().equals("example.xlsx")) {
+                    try (Workbook workbook = WorkbookFactory.create(zis)) {
                         Sheet sheet = workbook.getSheetAt(0);
 
-                        Cell cellE2 = sheet.getRow(1).getCell(4);
-                        Assertions.assertThat(cellE2.toString().trim()).isEqualTo("United States");
+                        String cellE2Value = sheet.getRow(1).getCell(4).toString().trim();
+                        Assertions.assertThat(cellE2Value).isEqualTo("United States");
 
-                        Cell cellH7 = sheet.getRow(6).getCell(2);
-                        Assertions.assertThat(cellH7.toString().trim()).isEqualTo("Brumm");
+                        String cellH7Value = sheet.getRow(6).getCell(2).toString().trim();
+                        Assertions.assertThat(cellH7Value).isEqualTo("Brumm");
                     }
+                    return;
+                }
+            }
+        }
+    }
 
-                } else if (entry.getName().equals("sample.pdf")) {
+    @Test
+    void pdfFileTest() throws Exception {
+        try (InputStream zipStream = cl.getResourceAsStream("somefiles.zip");
+             ZipInputStream zis = new ZipInputStream(zipStream)) {
 
-                    try (InputStream inputStreamPdf = zf.getInputStream(entry);
-                         PDDocument pdfDocument = PDDocument.load(inputStreamPdf)) {
-
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().equals("sample.pdf")) {
+                    try (PDDocument pdfDocument = PDDocument.load(zis)) {
                         PDFTextStripper pdfStripper = new PDFTextStripper();
                         String pdfText = pdfStripper.getText(pdfDocument);
                         Assertions.assertThat(pdfText).contains("This is a simple PDF file. Fun fun fun.");
@@ -75,9 +84,9 @@ public class FilesTests {
 
     @Test
     void jsonFileParsingImprovedTest() throws Exception {
-
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("books.json")) {
             ObjectMapper objectMapper = new ObjectMapper();
-            Library library = objectMapper.readValue(new File("src/test/resources/books.json"), Library.class);
+            Library library = objectMapper.readValue(is, Library.class);
 
             Assertions.assertThat(library.getLibraryName()).isEqualTo("City Central Library");
             Assertions.assertThat(library.getAddress()).isEqualTo("123 Main St, Anytown, USA");
@@ -104,6 +113,6 @@ public class FilesTests {
             assertThat(thirdBook.getPublishedYear()).isEqualTo(1925);
             assertThat(thirdBook.isAvailable()).isTrue();
             assertThat(thirdBook.getGenres()).containsExactly("Fiction", "Classic", "Tragedy");
-
+        }
     }
 }
